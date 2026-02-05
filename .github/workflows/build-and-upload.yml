@@ -1,0 +1,34 @@
+name: Build & Upload (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      build_command:
+        required: true
+        type: string
+      artifact_glob:
+        required: false
+        type: string
+        default: dist/*
+      runs_on:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        shell: bash
+        run: ${{ inputs.build_command }}
+      - name: Upload assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" ${{ inputs.artifact_glob }} --clobber
+
